@@ -1,0 +1,85 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{graphicx}
+
+\geometry{a4paper, margin=1in}
+
+\title{Object Tracking Project Report}
+\author{}
+% \date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+The goal of this project is to implement and analyze various object tracking algorithms, ranging from single object tracking using Kalman Filters to advanced multi-object tracking using visual appearance features. We progress through four stages (TP1 to TP4), improving the complexity and robustness of the tracking system with each step.
+
+\section{Code Structure and Analysis}
+
+\subsection{TP1: Single Object Tracking with Kalman (Centroid-Tracker)}
+The first TP focuses on tracking a single object (a black dot) using a Kalman Filter.
+\begin{itemize}
+    \item \textbf{Detector.py}: Provides a simple detection mechanism to find the centroid of the object in each frame.
+    \item \textbf{KalmanFilter.py}: Implements the prediction and update phases of the Kalman Filter. It maintains the state of the object (position and velocity) and predicts its future location.
+    \item \textbf{objTracking.py}: The main loop. It predicts the next state using the Kalman Filter, attempts to associate the prediction with the closest detection using Euclidean distance, and then updates the filter. If no measurement is found, it relies on the prediction.
+\end{itemize}
+
+\subsection{TP2:  IOU-based Tracking (Bounding-Box Tracker)}
+TP2 introduces multi-object tracking (MOT) using the Intersection over Union (IoU) metric.
+\begin{itemize}
+    \item \textbf{iou\_tracker.py}: Implements the \texttt{IOUTracker} class.
+    \item \textbf{Association}: It computes an IoU matrix between all current tracks and new detections. The Hungarian algorithm (\texttt{scipy.optimize.linear\_sum\_assignment}) is used to find the optimal assignment that maximizes the total IoU.
+    \item \textbf{Lifecycle}: Tracks are created for unmatched detections and deleted if they are not updated for \texttt{max\_age} frames. This allows the system to handle people entering and leaving the scene.
+\end{itemize}
+
+\subsection{TP3: Kalman-Guided IoU Tracking (Bounding-Box Tracker)}
+TP3 combines the Kalman Filter from TP1 with the IoU matching from TP2 to create a more robust tracker.
+\begin{itemize}
+    \item \textbf{kalman\_iou\_tracker.py}: The \texttt{Track} class now encapsulates its own \texttt{KalmanFilter}.
+    \item \textbf{Prediction}: Before association, every track predicts its new bounding box using the Kalman Filter.
+    \item \textbf{Association}: IoU is calculated between the predicted positions and the new detections (rather than the previous known positions). This helps bridge gaps when objects move quickly or are slightly occluded, as the Kalman Filter anticipates the movement.
+\end{itemize}
+
+\subsection{TP4: Appearance-Aware IoU-Kalman Object Tracker}
+TP4 adds visual features to solve the Identity Switching problem common in IoU-based trackers.
+\begin{itemize}
+    \item \textbf{appearance\_aware\_tracker.py}: Integrates a deep learning model for Re-Identification (ReID).
+    \item \textbf{Feature Extraction}: Uses an ONNX model (\texttt{osnet}) to extract a 512-dimensional feature vector for each detection.
+    \item \textbf{Cost Function}: The matching cost is a weighted combination of spatial distance (IoU) and visual similarity (Cosine distance of feature vectors).
+    \item \textbf{Advantage}: Using appearance features allows the tracker to re-identify objects even after they have been fully occluded or if their motion is unpredictable, as long as they look the same.
+\end{itemize}
+
+\section{Critical Analysis}
+
+\subsection{TP1 Analysis}
+The video shows a rectangle that consistently follows the black dot. The Kalman Filter successfully predicts the path of the single object, smoothing the movement and handling minor noise in detection.
+
+\subsection{TP2 Analysis}
+We are able to track multiple people in the scene. However, the tracking is not stable, the IDs assigned to each person keep changing. This occurs because pure IoU tracking fails when detections are missed or when the overlap between the previous and current frame is insufficient.
+
+\subsection{TP3 Analysis}
+The tracking stability is improved compared to TP2. We can track each person, and some IDs remain consistent even when someone passes behind someone else.
+\begin{itemize}
+    \item \textbf{Observation}: For example, user 66 passes behind user 62 and successfully keeps her ID. This was not the case in previous versions.
+    \item \textbf{Limitation}: However, it is not perfect. Some IDs still change. For instance, user 81 passes behind user 62 and incorrectly becomes user 87. This shows that spatial prediction alone (Kalman Filter) is sometimes insufficient during complex occlusions.
+\end{itemize}
+
+\subsection{TP4 Analysis}
+This version shows the most robust performance. Most IDs remain stable even through challenging occlusions where TP3 failed.
+\begin{itemize}
+    \item \textbf{Enhancements}:
+    \begin{itemize}
+        \item ID 2 remains ID 2 when passing behind ID 6.
+        \item ID 46 remains ID 46 behind ID 44.
+        \item ID 58 remains ID 58 behind ID 44.
+    \end{itemize}
+    \item \textbf{Conclusion}: Since the total number of unique IDs generated is lower than in the previous videos, we can confirm the system is better. Fewer IDs means fewer false new tracks and fewer ID switches, indicating a more stable tracking system.
+\end{itemize}
+
+\section{Conclusion}
+The project successfully demonstrates the evolution of object tracking systems. Starting from basic single-object tracking, we identified the limitations of spatial overlap (IoU) and motion prediction (Kalman Filter). The final implementation, incorporating appearance features (ReID), provides a significantly more robust solution capable of handling occlusions and maintaining consistent identities in a crowded scene.
+
+\end{document}

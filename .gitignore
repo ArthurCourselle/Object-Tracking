@@ -1,0 +1,7 @@
+.vscode
+__pycache__
+*.log
+*.out
+*.aux
+ADL-Rundle-6/
+.DS_Store
