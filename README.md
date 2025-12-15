@@ -10,7 +10,7 @@ The project is divided into four main parts (TPs):
   - Implements a centroid tracker using **Kalman Filter**.
   - tracks a single object (black dot).
 
-- **TP2: Multi-Object Tracking (MOT)**
+- **TP2: IoU-based Tracking**
   - Implements an **IoU-based tracker**.
   - Handles multiple objects but suffers from ID switching during occlusions.
 
