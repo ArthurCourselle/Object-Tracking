@@ -8,7 +8,7 @@
 
 \title{Object Tracking Project Report}
 \author{}
-% \date{\today}
+\date{}
 
 \begin{document}
 
@@ -28,7 +28,7 @@ The first TP focuses on tracking a single object (a black dot) using a Kalman Fi
 \end{itemize}
 
 \subsection{TP2:  IOU-based Tracking (Bounding-Box Tracker)}
-TP2 introduces multi-object tracking (MOT) using the Intersection over Union (IoU) metric.
+TP2 introduces multi-object tracking using the Intersection over Union (IoU) metric.
 \begin{itemize}
     \item \textbf{iou\_tracker.py}: Implements the \texttt{IOUTracker} class.
     \item \textbf{Association}: It computes an IoU matrix between all current tracks and new detections. The Hungarian algorithm (\texttt{scipy.optimize.linear\_sum\_assignment}) is used to find the optimal assignment that maximizes the total IoU.
