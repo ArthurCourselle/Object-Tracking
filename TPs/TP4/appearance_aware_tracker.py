@@ -75,7 +75,7 @@ class Track:
         
         if feature is not None:
              feature = feature / (np.linalg.norm(feature) + 1e-6)
-             # Exponential Moving Average to update features smoothly
+
              if self.feature is None:
                  self.feature = feature
              else:
@@ -191,9 +191,6 @@ class AppearanceAwareTracker:
         for m in matched_indices:
             det_idx = m[0]
             track_idx = m[1]
-            # Improved matching logic:
-            # Allow match if IoU is good OR if Appearance Similarity is very high.
-            # This helps recover IDs after occlusion or fast motion where IoU drops.
             
             iou_score = iou_matrix[det_idx, track_idx]
             sim_score = sim_matrix[det_idx, track_idx]
